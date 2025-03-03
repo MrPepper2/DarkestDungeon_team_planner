@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Darkest Dungeon Team Planner</title> 
+  <title>Darkest Dungeon Team Planner</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -11,19 +11,19 @@
       background-color: #222;
       color: white;
     }
-    
+
     h1 {
       text-align: center;
       color: #ff6347;
     }
-    
+
     .menu-container {
       display: flex;
       justify-content: space-around;
       flex-wrap: wrap;
       margin-top: 30px;
     }
-    
+
     .menu {
       background-color: #444;
       padding: 20px;
@@ -32,11 +32,11 @@
       text-align: center;
       margin-bottom: 20px;
     }
-    
+
     .menu h2 {
       color: #ff6347;
     }
-    
+
     .menu select {
       width: 100%;
       padding: 8px;
@@ -46,7 +46,7 @@
       border: none;
       border-radius: 5px;
     }
-    
+
     .gif-box {
       width: 250px;
       height: 420px;
@@ -58,13 +58,12 @@
       margin-left: auto;
       margin-right: auto;
     }
-    
+
     .hero-gif {
       max-width: 100%;
       max-height: 100%;
     }
-    
-    /* Ability selection */
+
     .ability-container {
       display: flex;
       flex-wrap: wrap;
@@ -72,7 +71,7 @@
       justify-content: center;
       margin-top: 10px;
     }
-    
+
     .ability-slot {
       width: 90px;
       height: 90px;
@@ -85,15 +84,14 @@
       padding: 0;
       overflow: hidden;
     }
-    
+
     .ability-slot img {
       width: 100%;
       height: 100%;
       object-fit: cover;
       display: block;
     }
-    
-    /* Ability menu */
+
     .ability-menu {
       position: absolute;
       display: none;
@@ -110,222 +108,134 @@
       max-height: 500px;
       overflow: auto;
     }
-    
+
     .ability-menu img {
       width: 90px;
       height: 90px;
       object-fit: cover;
     }
-    
-    /* Trinket container & boxes */
-    .trinket-container {
-      margin-top: 10px;
-      display: flex;
-      justify-content: center;
-      gap: 10px;
-    }
-    
-    .trinket-box {
-      width: 72px;
-      height: 144px;
-      background-color: #111;
-      border: 2px solid #777;
-      cursor: pointer;
-      position: relative;
-    }
-    
-    .trinket-box img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      display: none;
-    }
-    
-    /* Trinket menu (text list) */
-    .trinket-menu {
-      position: absolute;
-      display: none;
-      background: rgba(0, 0, 0, 0.9);
-      color: white;
-      padding: 10px;
-      border-radius: 5px;
-      z-index: 9999;
-    }
-    
-    .trinket-menu div {
-      padding: 5px;
-      cursor: pointer;
-    }
-    
-    .trinket-menu div:hover {
-      background-color: #333;
-    }
   </style>
 </head>
 <body>
   <h1>Darkest Dungeon Team Planner</h1>
-  
+
   <div class="menu-container">
     <script>
       let ranks = ["rank4", "rank3", "rank2", "rank1"];
       let heroes = ["abomination", "antiquarian", "arbalest", "bounty_hunter", "crusader"];
       let abilityNames = ["one", "two", "three", "four", "five", "six", "seven"];
-      
-      for (let rank of ranks) {
-        document.write(`
-          <div class="menu" id="${rank}">
-            <h2>${rank.replace("rank", "Rank ")}</h2>
-            <select id="${rank}-select" onchange="loadGif('${rank}'); updateAbilitySlots('${rank}')">
-              <option value="none">None</option>
-              ${heroes.map(hero => `<option value="${hero}">${hero.replace("_", " ")}</option>`).join('')}
-            </select>
-            <div class="gif-box">
-              <img id="${rank}-gif" class="hero-gif" style="display:none;">
+
+      // Dynamically generating the rank menus
+      document.addEventListener("DOMContentLoaded", function() {
+        for (let rank of ranks) {
+          let menuHTML = `
+            <div class="menu" id="${rank}">
+              <h2>${rank.replace("rank", "Rank ")}</h2>
+              <select id="${rank}-select" onchange="loadGif('${rank}'); updateAbilitySlots('${rank}')">
+                <option value="none">None</option>
+                ${heroes.map(hero => `<option value="${hero}">${hero.replace("_", " ")}</option>`).join('')}
+              </select>
+              <div class="gif-box">
+                <img id="${rank}-gif" class="hero-gif" style="display:none;">
+              </div>
+              <p class="section-title"><u>Skills</u></p>
+              <div class="ability-container" id="${rank}-abilities"></div>
             </div>
-            <p class="section-title"><u>Skills</u></p>
-            <div class="ability-container" id="${rank}-abilities"></div>
-            <p class="section-title"><u>Trinkets</u></p>
-            <div class="trinket-container" id="${rank}-trinkets">
-              ${[...Array(2)].map((_, i) => `
-                <div class="trinket-box" onclick="openTrinketMenu('${rank}', ${i})">
-                  <img id="${rank}-trinket-${i}" src="" style="display:none;">
-                </div>`).join('')}
-            </div>
-          </div>
-        `);
+          `;
+
+          document.querySelector(".menu-container").innerHTML += menuHTML;
+        }
+      });
+
+      // Function to load the hero gif when selected
+      function loadGif(rank) {
+        var selectMenu = document.getElementById(rank + "-select");
+        var selectedHero = selectMenu.value;
+        var gifElement = document.getElementById(rank + "-gif");
+
+        if (selectedHero !== "none") {
+          var gifPath = `./heroes/${selectedHero}/${selectedHero}_A/${selectedHero}.gif`;
+          gifElement.src = gifPath;
+          gifElement.style.display = "block";
+        } else {
+          gifElement.style.display = "none";
+        }
       }
-    </script>
-  </div>
-  
-  <!-- Global ability menu -->
-  <div id="ability-menu" class="ability-menu"></div>
-  
-  <!-- Global trinket menu (text list) -->
-  <div id="trinket-menu" class="trinket-menu"></div>
-  
-  <script>
-    function loadGif(rank) {
-      var selectMenu = document.getElementById(rank + "-select");
-      var selectedHero = selectMenu.value;
-      var gifElement = document.getElementById(rank + "-gif");
-      
-      if (selectedHero !== "none") {
-        var gifPath = `./heroes/${selectedHero}/${selectedHero}_A/${selectedHero}.gif`;
-        gifElement.src = gifPath;
-        gifElement.style.display = "block";
-      } else {
-        gifElement.style.display = "none";
-      }
-    }
-    
-    function updateAbilitySlots(rank) {
+
+      // Function to update the ability slots based on the selected hero
+      function updateAbilitySlots(rank) {
         var selectedHero = document.getElementById(rank + "-select").value;
         var abilityContainer = document.getElementById(rank + "-abilities");
-        abilityContainer.innerHTML = "";  
-        
+        abilityContainer.innerHTML = "";
+
         let slotCount = (selectedHero === "abomination") ? 7 : 4;
-        
+
         for (let i = 0; i < slotCount; i++) {
           let slot = document.createElement("div");
           slot.classList.add("ability-slot");
           slot.onclick = function() { openAbilityMenu(rank, i); };
           abilityContainer.appendChild(slot);
-          
-          if (selectedHero === "abomination") {
-            let abilityImg = document.createElement("img");
-            abilityImg.src = `./heroes/${selectedHero}/${selectedHero}.ability.${abilityNames[i]}.png`;
-            abilityImg.style.display = "block";
-            slot.appendChild(abilityImg);
-          }
+
+          let abilityImg = document.createElement("img");
+          abilityImg.src = `./heroes/${selectedHero}/${selectedHero}.ability.${abilityNames[i]}.png`;
+          abilityImg.style.display = "block";
+          slot.appendChild(abilityImg);
         }
       }
-      
-    function openAbilityMenu(rank, slotIndex) {
-      var selectedHero = document.getElementById(rank + "-select").value;
-      if (selectedHero === "none") return;
-      
-      var abilityMenu = document.getElementById("ability-menu");
-      abilityMenu.innerHTML = "";
-      
-      let abilityNames = ["one", "two", "three", "four", "five", "six", "seven"];
-      
-      for (let name of abilityNames) {
-        let abilityImg = document.createElement("img");
-        abilityImg.src = `./heroes/${selectedHero}/${selectedHero}.ability.${name}.png`;
-        abilityImg.onclick = function() {
-          selectAbility(rank, slotIndex, abilityImg.src);
-        };
-        abilityMenu.appendChild(abilityImg);
+
+      // Function to open the ability menu for selecting a new ability
+      function openAbilityMenu(rank, slotIndex) {
+        var selectedHero = document.getElementById(rank + "-select").value;
+        if (selectedHero === "none") return;
+
+        var abilityMenu = document.getElementById("ability-menu");
+        abilityMenu.innerHTML = "";
+
+        for (let name of abilityNames) {
+          let abilityImg = document.createElement("img");
+          abilityImg.src = `./heroes/${selectedHero}/${selectedHero}.ability.${name}.png`;
+          abilityImg.onclick = function() {
+            selectAbility(rank, slotIndex, abilityImg.src);
+          };
+          abilityMenu.appendChild(abilityImg);
+        }
+
+        let slotElement = document.querySelectorAll(`#${rank} .ability-slot`)[slotIndex];
+        let slotRect = slotElement.getBoundingClientRect();
+        let menuLeft = slotRect.left + window.scrollX;
+        let menuTop = slotRect.top + window.scrollY - 10;
+        abilityMenu.style.left = menuLeft + "px";
+        abilityMenu.style.top = menuTop + "px";
+        abilityMenu.style.display = "grid";
       }
-      
-      let slotElement = document.querySelectorAll("#" + rank + " .ability-slot")[slotIndex];
-      let slotRect = slotElement.getBoundingClientRect();
-      // Position the ability menu above the slot
-      let menuLeft = slotRect.left + window.scrollX;
-      let menuTop = slotRect.top + window.scrollY - 10; // we'll position it above after layout is done
-      abilityMenu.style.left = menuLeft + "px";
-      abilityMenu.style.top = menuTop + "px";
-      abilityMenu.style.display = "grid";
-    }
-    
-    function selectAbility(rank, slotIndex, abilitySrc) {
-      let slot = document.querySelectorAll("#" + rank + " .ability-slot")[slotIndex];
-      let abilityImg = slot.querySelector("img");
-      
-      if (!abilityImg) {
-        abilityImg = document.createElement("img");
-        slot.appendChild(abilityImg);
-      }
-      
-      abilityImg.src = abilitySrc;
-      abilityImg.style.display = "block";
-      
-      document.getElementById("ability-menu").style.display = "none";
-    }
-    
-    function openTrinketMenu(rank, slotIndex) {
-      var trinketMenu = document.getElementById("trinket-menu");
-      trinketMenu.innerHTML = "<div><strong>Trinkets</strong></div>";  // Reset and add the "Trinkets" text
-      let trinketOptions = ["Ancestral Lantern", "Ancestral Pistol"];
-      for (let option of trinketOptions) {
-        let div = document.createElement("div");
-        div.textContent = option;
-        div.style.cursor = "pointer";
-        div.style.padding = "5px";
-        div.onclick = function() { selectTrinket(rank, slotIndex, option); };
-        trinketMenu.appendChild(div);
-      }
-      
-      // Position the trinket menu below the clicked trinket box
-      let boxElement = document.querySelector(`#${rank}-trinkets .trinket-box:nth-child(${slotIndex + 1})`);
-      let boxRect = boxElement.getBoundingClientRect();
-      let menuLeft = boxRect.left + window.scrollX;
-      let menuTop = boxRect.top + boxRect.height + window.scrollY + 5;
-      trinketMenu.style.left = menuLeft + "px";
-      trinketMenu.style.top = menuTop + "px";
-      trinketMenu.style.display = "block";
-    }
-    
-    function selectTrinket(rank, slotIndex, trinketName) {
-      var trinketImg = document.getElementById(`${rank}-trinket-${slotIndex}`);
-      if (trinketName === "Ancestral Lantern") {
-        trinketImg.src = "./trinket/inv_trinket+ancestors_lantern.png";
-      } else if (trinketName === "Ancestral Pistol") {
-        trinketImg.src = "./trinket/inv_trinket+ancestors_pistol.png";
-      }
-      trinketImg.style.display = "block";
-      document.getElementById("trinket-menu").style.display = "none";
-    }
-    
-    document.addEventListener("click", function(event) {
-      if (!event.target.closest(".ability-slot") &&
-          !event.target.closest(".ability-menu") &&
-          !event.target.closest(".trinket-box") &&
-          !event.target.closest(".trinket-menu")) {
+
+      // Function to select an ability and update the slot with the chosen ability
+      function selectAbility(rank, slotIndex, abilitySrc) {
+        let slot = document.querySelectorAll(`#${rank} .ability-slot`)[slotIndex];
+        let abilityImg = slot.querySelector("img");
+
+        if (!abilityImg) {
+          abilityImg = document.createElement("img");
+          slot.appendChild(abilityImg);
+        }
+
+        abilityImg.src = abilitySrc;
+        abilityImg.style.display = "block";
+
         document.getElementById("ability-menu").style.display = "none";
-        document.getElementById("trinket-menu").style.display = "none";
       }
-    });
-  </script>
+
+      // Close the ability menu if clicked outside
+      document.addEventListener("click", function(event) {
+        if (!event.target.closest(".ability-slot") &&
+            !event.target.closest(".ability-menu")) {
+          document.getElementById("ability-menu").style.display = "none";
+        }
+      });
+    </script>
+  </div>
+
+  <div id="ability-menu" class="ability-menu"></div>
+
 </body>
 </html>

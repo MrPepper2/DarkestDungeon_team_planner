@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<trinkets>
+    <trinket>
+        <name>Focus Ring</name>
+        <class_restriction>none</class_restriction>
+        <modded>no</modded>
+    </trinket>
+    <trinket>
+        <name>Junia's Head</name>
+        <class_restriction>none</class_restriction>
+        <modded>no</modded>
+    </trinket>
+    <trinket>
+        <name>Broken Key</name>
+        <class_restriction>abomination</class_restriction>
+        <modded>no</modded>
+    </trinket>
+</trinkets>
