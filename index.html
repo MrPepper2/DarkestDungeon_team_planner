@@ -19,7 +19,7 @@
         document.write(`\
           <div class="menu" id="${rank}">\
             <h2>${rank.replace("rank", "Rank ")}</h2>\
-            <select id="${rank}-select" onchange="loadGif('${rank}'); updateAbilitySlots('${rank}')">\
+            <select id="${rank}-select" onchange="loadGif('${rank}'); updateAbilitySlots('${rank}'); loadTrinkets('${rank}')">\
               <option value="none">None</option>\
               ${heroes.map(hero => `<option value="${hero}">${hero.replace("_", " ")}</option>`).join('')}\
             </select>\
@@ -130,28 +130,57 @@
       }
     });
 
-    // Function to load trinket options from the file
-    function loadTrinkets() {
-      fetch('./base_trinkets.txt')
-        .then(response => response.text())
-        .then(data => {
-          let trinketSelects = document.querySelectorAll("select[id$='-trinket-select']");
-          let trinketOptions = data.split("\n").map(line => line.trim()).filter(line => line.length > 0);
+    // Function to load trinket options from the files
+    function loadTrinkets(rank) {
+      var selectedHero = document.getElementById(rank + "-select").value;
+      var trinketSelect = document.getElementById(rank + "-trinket-select");
+      trinketSelect.innerHTML = "<option value='none'>None</option>"; // Reset the trinket menu
+      
+      // Load hero-specific trinkets first
+      if (selectedHero !== "none") {
+        var heroTrinketFile = `./heroes/${selectedHero}/${selectedHero}_trinkets.txt`;
+        
+        fetch(heroTrinketFile)
+          .then(response => response.text())
+          .then(data => {
+            let trinketOptions = data.split("\n").map(line => line.trim()).filter(line => line.length > 0);
 
-          trinketSelects.forEach(select => {
             trinketOptions.forEach(trinket => {
               let option = document.createElement("option");
               option.value = trinket;
               option.textContent = trinket;
-              select.appendChild(option);
+              trinketSelect.appendChild(option);
             });
+            
+            // After loading hero-specific trinkets, load base trinkets
+            loadBaseTrinkets(trinketSelect);
+          })
+          .catch(error => {
+            console.error("Error loading hero trinkets:", error);
+            // Even if loading the hero trinkets fails, load the base trinkets
+            loadBaseTrinkets(trinketSelect);
           });
-        })
-        .catch(error => console.error("Error loading trinkets:", error));
+      } else {
+        loadBaseTrinkets(trinketSelect); // If no hero is selected, just load the base trinkets
+      }
     }
 
-    // Call the loadTrinkets function on page load
-    loadTrinkets();
+    // Function to load base trinkets
+    function loadBaseTrinkets(trinketSelect) {
+      fetch('./base_trinkets.txt')
+        .then(response => response.text())
+        .then(data => {
+          let trinketOptions = data.split("\n").map(line => line.trim()).filter(line => line.length > 0);
+
+          trinketOptions.forEach(trinket => {
+            let option = document.createElement("option");
+            option.value = trinket;
+            option.textContent = trinket;
+            trinketSelect.appendChild(option);
+          });
+        })
+        .catch(error => console.error("Error loading base trinkets:", error));
+    }
   </script>
 </body>
 </html>
