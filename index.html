@@ -4,7 +4,6 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Darkest Dungeon Team Planner</title>
-  <!-- Link to the external CSS file -->
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -30,25 +29,28 @@
             <p class="section-title"><u>Skills</u></p>\
             <div class="ability-container" id="${rank}-abilities"></div>\
             <p class="section-title"><u>Trinkets</u></p>\
-            <div class="trinket-container" id="${rank}-trinkets">Trinkets</div>\
+            <div class="trinket-container" id="${rank}-trinkets"></div>\
           </div>\
         `);
       }
     </script>
   </div>
-  
+
+  <!-- Trinket Selection Menu -->
+  <h2>Select a Trinket</h2>
+  <select id="trinket-menu">
+    <option value="">-- Select a Trinket --</option>
+  </select>
+
   <!-- Global ability menu -->
   <div id="ability-menu" class="ability-menu"></div>
-  
-  <!-- Global trinket menu (hidden) -->
-  <div id="trinket-menu" class="trinket-menu"></div>
-  
+
   <script>
     function loadGif(rank) {
       var selectMenu = document.getElementById(rank + "-select");
       var selectedHero = selectMenu.value;
       var gifElement = document.getElementById(rank + "-gif");
-      
+
       if (selectedHero !== "none") {
         var gifPath = `./heroes/${selectedHero}/${selectedHero}_A/${selectedHero}.gif`;
         gifElement.src = gifPath;
@@ -57,38 +59,38 @@
         gifElement.style.display = "none";
       }
     }
-    
+
     function updateAbilitySlots(rank) {
-        var selectedHero = document.getElementById(rank + "-select").value;
-        var abilityContainer = document.getElementById(rank + "-abilities");
-        abilityContainer.innerHTML = "";  
-        
-        let slotCount = (selectedHero === "abomination") ? 7 : 4;
-        
-        for (let i = 0; i < slotCount; i++) {
-          let slot = document.createElement("div");
-          slot.classList.add("ability-slot");
-          slot.onclick = function() { openAbilityMenu(rank, i); };
-          abilityContainer.appendChild(slot);
-          
-          if (selectedHero === "abomination") {
-            let abilityImg = document.createElement("img");
-            abilityImg.src = `./heroes/${selectedHero}/${selectedHero}.ability.${abilityNames[i]}.png`;
-            abilityImg.style.display = "block";
-            slot.appendChild(abilityImg);
-          }
+      var selectedHero = document.getElementById(rank + "-select").value;
+      var abilityContainer = document.getElementById(rank + "-abilities");
+      abilityContainer.innerHTML = "";  
+
+      let slotCount = (selectedHero === "abomination") ? 7 : 4;
+
+      for (let i = 0; i < slotCount; i++) {
+        let slot = document.createElement("div");
+        slot.classList.add("ability-slot");
+        slot.onclick = function() { openAbilityMenu(rank, i); };
+        abilityContainer.appendChild(slot);
+
+        if (selectedHero === "abomination") {
+          let abilityImg = document.createElement("img");
+          abilityImg.src = `./heroes/${selectedHero}/${selectedHero}.ability.${abilityNames[i]}.png`;
+          abilityImg.style.display = "block";
+          slot.appendChild(abilityImg);
         }
       }
-      
+    }
+
     function openAbilityMenu(rank, slotIndex) {
       var selectedHero = document.getElementById(rank + "-select").value;
       if (selectedHero === "none") return;
-      
+
       var abilityMenu = document.getElementById("ability-menu");
       abilityMenu.innerHTML = "";
-      
+
       let abilityNames = ["one", "two", "three", "four", "five", "six", "seven"];
-      
+
       for (let name of abilityNames) {
         let abilityImg = document.createElement("img");
         abilityImg.src = `./heroes/${selectedHero}/${selectedHero}.ability.${name}.png`;
@@ -97,41 +99,71 @@
         };
         abilityMenu.appendChild(abilityImg);
       }
-      
+
       let slotElement = document.querySelectorAll("#" + rank + " .ability-slot")[slotIndex];
       let slotRect = slotElement.getBoundingClientRect();
-      // Position the ability menu above the slot
       let menuLeft = slotRect.left + window.scrollX;
-      let menuTop = slotRect.top + window.scrollY - 10; // we'll position it above after layout is done
+      let menuTop = slotRect.top + window.scrollY - 10;
       abilityMenu.style.left = menuLeft + "px";
       abilityMenu.style.top = menuTop + "px";
       abilityMenu.style.display = "grid";
     }
-    
+
     function selectAbility(rank, slotIndex, abilitySrc) {
       let slot = document.querySelectorAll("#" + rank + " .ability-slot")[slotIndex];
       let abilityImg = slot.querySelector("img");
-      
+
       if (!abilityImg) {
         abilityImg = document.createElement("img");
         slot.appendChild(abilityImg);
       }
-      
+
       abilityImg.src = abilitySrc;
       abilityImg.style.display = "block";
-      
+
       document.getElementById("ability-menu").style.display = "none";
     }
-    
+
     document.addEventListener("click", function(event) {
       if (!event.target.closest(".ability-slot") &&
           !event.target.closest(".ability-menu") &&
-          !event.target.closest(".trinket-box") &&
-          !event.target.closest(".trinket-menu")) {
+          !event.target.closest(".trinket-box")) {
         document.getElementById("ability-menu").style.display = "none";
-        document.getElementById("trinket-menu").style.display = "none";
       }
     });
+
+    function loadTrinketNames() {
+    fetch("trinkets.xml")
+      .then(response => response.text())
+      .then(xmlText => {
+        let parser = new DOMParser();
+        let xmlDoc = parser.parseFromString(xmlText, "text/xml");
+
+        // Debugging: Check the structure of the parsed XML
+        console.log("Parsed XML:", xmlDoc);
+
+        let trinketElements = xmlDoc.getElementsByTagName("name");
+
+        // Debugging: Log the trinket elements to check if we're getting them
+        console.log("Trinket Elements:", trinketElements);
+
+        let trinketMenu = document.getElementById("trinket-menu");
+        
+        // Clear existing options (except the first)
+        trinketMenu.innerHTML = '<option value="">-- Select a Trinket --</option>';
+
+        // Add trinkets as options
+        Array.from(trinketElements).forEach(el => {
+          let option = document.createElement("option");
+          option.value = el.textContent;
+          option.textContent = el.textContent;
+          trinketMenu.appendChild(option);
+        });
+      })
+      .catch(error => console.error("Error loading XML:", error));
+  }
+
+  window.onload = loadTrinketNames;
   </script>
 </body>
 </html>
