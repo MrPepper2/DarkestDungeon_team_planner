@@ -24,12 +24,15 @@
               ${heroes.map(hero => `<option value="${hero}">${hero.replace("_", " ")}</option>`).join('')}\
             </select>\
             <div class="gif-box">\
-              <img id="${rank}-gif" class="hero-gif" style="display:none;">\
+              <img id="${rank}-gif" class="hero-gif" style="display:none;" onclick="cycleGif('${rank}')">\
             </div>\
             <p class="section-title"><u>Skills</u></p>\
             <div class="ability-container" id="${rank}-abilities"></div>\
             <p class="section-title"><u>Trinkets</u></p>\
             <select id="${rank}-trinket-select">\
+              <option value="none">None</option>\
+            </select>\
+            <select id="${rank}-trinket-select2">\
               <option value="none">None</option>\
             </select>\
           </div>\
@@ -42,17 +45,32 @@
   <div id="trinket-menu" class="trinket-menu"></div>
   
   <script>
+    let gifCycle = {};  // Keeps track of the current gif cycle for each rank
+
     function loadGif(rank) {
       var selectMenu = document.getElementById(rank + "-select");
       var selectedHero = selectMenu.value;
       var gifElement = document.getElementById(rank + "-gif");
-      
+
       if (selectedHero !== "none") {
+        gifCycle[rank] = 0;  // Reset the gif cycle whenever a new hero is selected
         var gifPath = `./heroes/${selectedHero}/${selectedHero}_A/${selectedHero}.gif`;
         gifElement.src = gifPath;
         gifElement.style.display = "block";
       } else {
         gifElement.style.display = "none";
+      }
+    }
+
+    function cycleGif(rank) {
+      var selectMenu = document.getElementById(rank + "-select");
+      var selectedHero = selectMenu.value;
+      var gifElement = document.getElementById(rank + "-gif");
+
+      if (selectedHero !== "none") {
+        gifCycle[rank] = (gifCycle[rank] + 1) % 4;  // Cycle between 0 to 3 (A to D)
+        var gifSuffix = ["A", "B", "C", "D"][gifCycle[rank]];
+        gifElement.src = `./heroes/${selectedHero}/${selectedHero}_${gifSuffix}/${selectedHero}.gif`;
       }
     }
     
@@ -134,7 +152,9 @@
     function loadTrinkets(rank) {
       var selectedHero = document.getElementById(rank + "-select").value;
       var trinketSelect = document.getElementById(rank + "-trinket-select");
+      var trinketSelect2 = document.getElementById(rank + "-trinket-select2");
       trinketSelect.innerHTML = "<option value='none'>None</option>"; // Reset the trinket menu
+      trinketSelect2.innerHTML = "<option value='none'>None</option>"; // Reset the second trinket menu
       
       // Load hero-specific trinkets first
       if (selectedHero !== "none") {
@@ -150,23 +170,24 @@
               option.value = trinket;
               option.textContent = trinket;
               trinketSelect.appendChild(option);
+              trinketSelect2.appendChild(option.cloneNode(true));  // Add the same options to the second menu
             });
             
             // After loading hero-specific trinkets, load base trinkets
-            loadBaseTrinkets(trinketSelect);
+            loadBaseTrinkets(trinketSelect, trinketSelect2);
           })
           .catch(error => {
             console.error("Error loading hero trinkets:", error);
             // Even if loading the hero trinkets fails, load the base trinkets
-            loadBaseTrinkets(trinketSelect);
+            loadBaseTrinkets(trinketSelect, trinketSelect2);
           });
       } else {
-        loadBaseTrinkets(trinketSelect); // If no hero is selected, just load the base trinkets
+        loadBaseTrinkets(trinketSelect, trinketSelect2); // If no hero is selected, just load the base trinkets
       }
     }
 
     // Function to load base trinkets
-    function loadBaseTrinkets(trinketSelect) {
+    function loadBaseTrinkets(trinketSelect, trinketSelect2) {
       fetch('./base_trinkets.txt')
         .then(response => response.text())
         .then(data => {
@@ -177,6 +198,7 @@
             option.value = trinket;
             option.textContent = trinket;
             trinketSelect.appendChild(option);
+            trinketSelect2.appendChild(option.cloneNode(true));  // Add the same options to the second menu
           });
         })
         .catch(error => console.error("Error loading base trinkets:", error));
